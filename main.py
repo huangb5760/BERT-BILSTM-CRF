@@ -186,5 +186,5 @@ def main(data_name):
 
 
 if __name__ == "__main__":
-    data_name = "dgre"
+    data_name = "wine"
     main(data_name)
