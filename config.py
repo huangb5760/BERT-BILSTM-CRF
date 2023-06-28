@@ -6,7 +6,7 @@ from transformers import BertTokenizer
 
 
 class CommonConfig:
-    bert_dir = "./model_hub/chinese-bert-wwm-ext/"
+    bert_dir = "./model_hub/pai-ckbert-large-zh/"
     output_dir = "./checkpoint/"
     data_dir = "./data/"
 

@@ -65,7 +65,7 @@ class Predictor:
 
 
 if __name__ == "__main__":
-    data_name = "dgre"
+    data_name = "wine"
     predictor = Predictor(data_name)
     if data_name == "dgre":
         texts = [
@@ -82,10 +82,20 @@ if __name__ == "__main__":
             "数据分析方法五种》是2011年格致出版社出版的图书，作者是尤恩·苏尔李",
             "视剧《不可磨灭》是导演潘培成执导，刘蓓、丁志诚、李洪涛、丁海峰、雷娟、刘赫男等联袂主演",
         ]
+    elif data_name == "wine":
+        texts = [
+            "22年金字陈酿7200",
+            "出售飞天茅台2000",
+            "770求购坛子迎宾200件",
+            "950包邮出52度光瓶梦之蓝手工版",
+            "10年茅台53度文化研究会会员7000",
+            "智慧舍得双支礼盒2910/盒",
+            "品味舍得60°，2013产530/瓶",
+            "汾酒青花53度20 375ml 2 | 248 | 瓶",
+            "出售飞天茅台2000,50度1995纪念古井贡,汾酒青花53度20 375ml 2 | 248 | 瓶,10年茅台53度文化研究会会员7000"
+        ]
     for text in texts:
         ner_result = predictor.ner_predict(text)
         print("文本>>>>>：", text)
         print("实体>>>>>：", ner_result)
         print("="*100)
-
-
