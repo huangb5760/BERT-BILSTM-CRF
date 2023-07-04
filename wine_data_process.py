@@ -20,27 +20,34 @@ class ProcessWineData:
 		keys = []
 		# 保存结果
 		result = []
-		recrod={}
 		#读取标题作为key
 		for x in range(0,max_column):
 			keys.append(data[0][x].value)
 		# 用于读取第一列和后面列1对多的excel文件
-		for i in range(1,max_row):
+		for i in range(1,72):
+			recrod={}
+			text_org=None
 			for j in range(0,max_column):
 				content = data[i][j].value
-				print("{}行,{}列:{}".format(i,j,content))
 				if j == 0:
 					recrod["id"] = content
 				elif j == 1:
-					if content!=None:  
+					if content!=None:
+						text_org = content
 						recrod["text"] = [i for i in content]
 						recrod["labels"] = ["O"] * len(recrod['text'])
 				elif j>1:
 					if content!=None:
 						d = eval(content)
 						for rel_id, spo in enumerate(d):
-							spo_start = spo["pos"][0]
-							spo_end = spo["pos"][1]
+							spo_start=0
+							spo_end=0
+							if spo.get("pos")!=None:
+								spo_start = spo["pos"][0]
+								spo_end = spo["pos"][1]
+							else:
+								spo_start = text_org.find(spo["name"])
+								spo_end = spo_start+len(spo["name"])-1
 							recrod["labels"][spo_start] = "B-" + keys[j]
 							if spo_end >spo_start:
 								for q in range(spo_start + 1, spo_end+1):
@@ -51,10 +58,10 @@ class ProcessWineData:
 		train_data = result[:train_num]
 		dev_data = result[train_num:]
 		#输出
-		with open(self.train_file + "/wine_train_data.txt", "w") as fp:
+		with open(self.train_file + "/train.txt", "w") as fp:
 		    fp.write(os.linesep.join([json.dumps(d, ensure_ascii=False) for d in train_data]))
 
-		with open(self.train_file + "/wine_dev_data.txt", "w") as fp:
+		with open(self.train_file + "/dev.txt", "w") as fp:
 		    fp.write(os.linesep.join([json.dumps(d, ensure_ascii=False) for d in dev_data]))
 
 		# 这里标签一般从数据中处理得到，这里我们自定义
