@@ -2,7 +2,6 @@ from openpyxl import load_workbook
 import json
 import os
 import re
-from predict import  Predictor
 
 class ProcessWineData:
 	def __init__(self):
@@ -27,7 +26,7 @@ class ProcessWineData:
 		for x in range(0,max_column):
 			keys.append(data[0][x].value)
 		# 用于读取第一列和后面列1对多的excel文件
-		for i in range(1,2022):
+		for i in range(1,2066):
 			recrod={}
 			text_org=None
 			for j in range(0,max_column):
@@ -43,22 +42,23 @@ class ProcessWineData:
 				elif j>1:
 					if content!=None:
 						content = str(content)
-						if keys[j]=='specification':
-							content = self.pre_handle_text(content)
 						try:
 							d = eval(content)
 							find_start=0
 							for rel_id, spo in enumerate(d):
+								name = spo["name"]
+								if keys[j]=='specification':
+									name = self.pre_handle_text(name)
 								spo_start=0
 								spo_end=0
 								if spo.get("pos")!=None:
 									spo_start = spo["pos"][0]
 									spo_end = spo["pos"][1]
 								else:
-									spo_start = text_org.find(spo["name"],find_start)
+									spo_start = text_org.find(name,find_start)
 									if spo_start == -1:
 										continue
-									spo_end = spo_start+len(spo["name"])-1
+									spo_end = spo_start+len(name)-1
 									find_start = spo_end+1
 								recrod["labels"][spo_start] = "B-" + keys[j]
 								if spo_end >spo_start:
@@ -67,6 +67,8 @@ class ProcessWineData:
 						except :
 							find_start=0
 							for item in content.split():
+								if keys[j]=='specification':
+									item = self.pre_handle_text(item)
 								spo_start = text_org.find(item,find_start)
 								if spo_start == -1:
 									continue
