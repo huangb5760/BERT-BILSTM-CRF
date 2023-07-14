@@ -42,6 +42,7 @@ class Predictor:
         return input_ids, attention_mask
 
     def ner_predict(self, text):
+        text = self.pre_handle_text(text)
         input_ids, attention_mask = self.ner_tokenizer(text)
         input_ids = input_ids.to(self.device)
         attention_mask = attention_mask.to(self.device)
@@ -58,10 +59,25 @@ class Predictor:
             ent_start = ent[1]
             ent_end = ent[2]
             if ent_name not in result:
-                result[ent_name] = [("".join(text[ent_start:ent_end + 1]), ent_start, ent_end)]
+                result[ent_name] = [{"text":text[ent_start:ent_end + 1], "ent_start":ent_start, "ent_end":ent_end}]
             else:
-                result[ent_name].append(("".join(text[ent_start:ent_end + 1]), ent_start, ent_end))
+                result[ent_name].append({"text":text[ent_start:ent_end + 1], "ent_start":ent_start, "ent_end":ent_end})
         return result
+        #文本纠错
+    def pre_handle_text(self,text):
+        if self.data_name == 'steel':
+            return self.pre_handle_text_steel(text)
+        else:
+            return text;
+
+    def pre_handle_text_steel(self,text):
+        text = re.sub(r'\n','<br />',text)
+        text = re.sub(r'[xX]','*',text)
+        text = re.sub(r' +',' ',text)
+        text = re.sub(r' *\* *','*',text)
+        text = re.sub(r' *(都是|/\*) *','*',text)
+        text = re.sub(r' *或 *|？|\?|/+','/',text)
+        return text
 
 
 if __name__ == "__main__":

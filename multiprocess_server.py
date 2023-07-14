@@ -1,8 +1,19 @@
+# coding: utf-8
+# flask + gevent + multiprocess + wsgi
+
+from gevent import monkey
+from gevent.pywsgi import WSGIServer
+monkey.patch_all()
+
+import datetime
+import os
+from multiprocessing import cpu_count, Process
+from flask import Flask, jsonify
 import json
-from flask import Flask
 from flask import request
 from predict import  Predictor
 import time
+
 
 app = Flask(__name__)
 app.config['JSON_AS_ASCII'] = False
@@ -47,9 +58,24 @@ class ReturnResult:
         self.result = result
         self.ucode = ucode
 
+def run(MULTI_PROCESS):
+    if MULTI_PROCESS == False:
+        WSGIServer(('0.0.0.0', 8080), app).serve_forever()
+    else:
+        mulserver = WSGIServer(('0.0.0.0', 8080), app)
+        mulserver.start()
 
-if __name__ == '__main__':
+        def server_forever():
+            mulserver.start_accepting()
+            mulserver._stop_event.wait()
+
+        for i in range(cpu_count()):
+            p = Process(target=server_forever)
+            p.start()
+
+if __name__ == "__main__":
     predictor = Predictor('steel')
-    app.run(host="0.0.0.0", port=9277, debug=False, threaded=3)
-# 启动 nohup python -u server.py > nohup.log &
-# 访问 curl  http://10.80.92.7:9277/extraction -X POST -d '{"text": "1.4*1250*2500 1.8*1250*2500本钢盒板什么价格呢"}' --header "Content-Type: application/json"
+    # 单进程 + 协程
+    run(False)
+    # 多进程 + 协程
+    # run(True)
