@@ -7,7 +7,8 @@ from collections import namedtuple
 from model import BertNer
 from seqeval.metrics.sequence_labeling import get_entities
 from transformers import BertTokenizer
-
+import re
+import utils
 
 def get_args(args_path, args_name=None):
     with open(args_path, "r") as fp:
@@ -66,22 +67,12 @@ class Predictor:
         #文本纠错
     def pre_handle_text(self,text):
         if self.data_name == 'steel':
-            return self.pre_handle_text_steel(text)
+            return utils.pre_handle_text_steel(text)
         else:
             return text;
 
-    def pre_handle_text_steel(self,text):
-        text = re.sub(r'\n','<br />',text)
-        text = re.sub(r'[xX]','*',text)
-        text = re.sub(r' +',' ',text)
-        text = re.sub(r' *\* *','*',text)
-        text = re.sub(r' *(都是|/\*) *','*',text)
-        text = re.sub(r' *或 *|？|\?|/+','/',text)
-        return text
-
-
 if __name__ == "__main__":
-    data_name = "wine"
+    data_name = "steel"
     predictor = Predictor(data_name)
     if data_name == "dgre":
         texts = [
@@ -100,15 +91,43 @@ if __name__ == "__main__":
         ]
     elif data_name == "wine":
         texts = [
-            "22年金字陈酿7200",
-            "出售飞天茅台2000",
-            "770求购坛子迎宾200件",
-            "950包邮出52度光瓶梦之蓝手工版",
-            "10年茅台53度文化研究会会员7000",
-            "智慧舍得双支礼盒2910/盒",
-            "品味舍得60°，2013产530/瓶",
-            "汾酒青花53度20 375ml 2 | 248 | 瓶",
-            "出售飞天茅台2000,50度1995纪念古井贡,汾酒青花53度20 375ml 2 | 248 | 瓶,10年茅台53度文化研究会会员7000"
+            "11年45度将台醇酒三国文化酒，500ml*6瓶，",
+            "93年52度黑瓷瓶全兴大曲，稀少收藏",
+            "14年52度茅台醇礼盒，柔雅浓香型，425ml",
+            "80年代铁盖泸州老窖二曲，酒满",
+            "88年飞天鸭溪 品相如图 花好 稀缺瓶型",
+            "2012年泸州老窖特曲老酒6斤泸州老窖周华健",
+            "99年四川酒神一箱,350一瓶，喜欢联系",
+            "80年代四特牌四特酒，收藏品，2100包邮",
+            "88年汾酒，酒满品好，1050顺丰包邮，喜欢的联系",
+            "2013年53度白金酱酒红酱A3，酱香型",
+            "泸州老窖磨砂瓶二曲2007年12月 52度 500ml",
+            "2000年。郎酒 五年陈酿 1500/瓶 原箱",
+            "2001年52度叙府大曲，原箱20瓶，酒满品好",
+            "现货批发 12年50度红星二锅头150ml*24",
+            "经典五粮液小酒礼盒五粮液经典100毫升五粮",
+            "2017年【夜郎古】贵州名酒53度酱香型 绝版",
+            "现货出13年52度精品绵竹大曲，500ml*6瓶",
+            "北京地区求购一瓶白云边星级42度500毫升（四星陈酿），价格你开",
+            "八八坑道马到成功45度600毫升",
+        ]
+    elif data_name == 'steel':
+        texts = [
+            "Q235B: 5.8*1500<br />Q355B 5.8*1500    7.8*1500     9.75*1500    11.75*1500<br />看下啥价格",
+            "冷轧  1.0*1250<br />2.0*1250<br />酸洗 3.5*1250",
+            "3.25   SPHC   热轧或者酸洗  有嘛  看下",
+            "Q235B 的3.75/5.75/7.75/9.7511.75*1500*C",
+            "2.75*1500/3.75*1500普卷开好什么价格",
+            "5.0/8.0/10*1500   235卷",
+            "5*1500*C      Q235B<br />6.5*1500*C   Q235B<br />帮忙看看下午的价格",
+            " 1.7-1.8的热轧",
+            "2.3*1250 1.8*1250花纹看看有没有吗",
+            "Q235B的2.3*1200/1250和4.0*1250*C的什么价格",
+            "11.75  1500的普卷帮忙看看价格，新鞋",
+            "5760",
+            "22.79",
+            "7.75   5760 有吗",
+            "3.0的Q料都没有低于5800的啊",
         ]
     for text in texts:
         ner_result = predictor.ner_predict(text)

@@ -2,6 +2,7 @@ from openpyxl import load_workbook
 import json
 import os
 import re
+import utils
 
 class ProcessWineData:
 	def __init__(self):
@@ -26,7 +27,7 @@ class ProcessWineData:
 		for x in range(0,max_column):
 			keys.append(data[0][x].value)
 		# 用于读取第一列和后面列1对多的excel文件
-		for i in range(1,2066):
+		for i in range(1,2119):
 			recrod={}
 			text_org=None
 			for j in range(0,max_column):
@@ -66,7 +67,7 @@ class ProcessWineData:
 									    recrod["labels"][q] = "I-" + keys[j]
 						except :
 							find_start=0
-							for item in content.split():
+							for item in content.split('\n'):
 								if keys[j]=='specification':
 									item = self.pre_handle_text(item)
 								spo_start = text_org.find(item,find_start)
@@ -78,7 +79,7 @@ class ProcessWineData:
 								for q in range(spo_start + 1, spo_end+1):
 									recrod["labels"][q] = "I-" + keys[j]
 			result.append(recrod)
-		train_ratio = 1
+		train_ratio = 0.95
 		train_num = int(len(result) * train_ratio)
 		train_data = result[:train_num]
 		dev_data = result[train_num:]
@@ -96,13 +97,7 @@ class ProcessWineData:
 		print("转换任务结束")
 	#文本纠错
 	def pre_handle_text(self,text):
-		text = re.sub(r'\n','<br />',text)
-		text = re.sub(r'[xX]','*',text)
-		text = re.sub(r' +',' ',text)
-		text = re.sub(r' *\* *','*',text)
-		text = re.sub(r' *(都是|/\*) *','*',text)
-		text = re.sub(r' *或 *|？|\?|/+','/',text)
-		return text
+		return utils.pre_handle_text_steel(text)
 
 if __name__ == "__main__":
 	processWineData = ProcessWineData()
