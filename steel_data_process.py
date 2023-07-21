@@ -16,7 +16,7 @@ class ProcessWineData:
 		rows=ws.rows
 		max_row=ws.max_row #获取行数
 		#max_column=ws.max_column #获取列数
-		max_column = 5
+		max_column = 6
 		print("转换任务开始，共{}行,{}列".format(max_row,max_column))
 		data=list(rows)
 		# 保存关键字
@@ -27,7 +27,7 @@ class ProcessWineData:
 		for x in range(0,max_column):
 			keys.append(data[0][x].value)
 		# 用于读取第一列和后面列1对多的excel文件
-		for i in range(1,2119):
+		for i in range(1,max_row):
 			recrod={}
 			text_org=None
 			for j in range(0,max_column):
@@ -79,7 +79,7 @@ class ProcessWineData:
 								for q in range(spo_start + 1, spo_end+1):
 									recrod["labels"][q] = "I-" + keys[j]
 			result.append(recrod)
-		train_ratio = 0.95
+		train_ratio = 1
 		train_num = int(len(result) * train_ratio)
 		train_data = result[:train_num]
 		dev_data = result[train_num:]

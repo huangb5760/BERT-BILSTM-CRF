@@ -13,8 +13,8 @@ def local_replace(text,source_char,taget_char):
 #钢铁行业文本处理
 def pre_handle_text_steel(text):
 		text = re.sub(r'\n','<br />',text)
-		text = local_replace(text,'[×xX]','*')
-		text = local_replace(text,'\+','/')
-		text = local_replace(text,'(都是|/\*)','*')
-		text = local_replace(text,'(或者|或|和|？|\?|、|,)','/')
+		text = re.sub(r' +',' ',text)
+		text = local_replace(text,'(都是|/\*|\*/|[×xX]|的，|宽度)','*')
+		text = local_replace(text,'(或者|或|和|有|？|\?|、|,|，|\+|-|/+)','/')
 		return text
+#print(pre_handle_text_steel('1.5/2.0/2.5/3.0/3.75//5.0/6.0*1500的麻烦看一下'))
