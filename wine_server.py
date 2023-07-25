@@ -1,19 +1,8 @@
-# coding: utf-8
-# flask + gevent + multiprocess + wsgi
-
-from gevent import monkey
-from gevent.pywsgi import WSGIServer
-monkey.patch_all()
-
-import datetime
-import os
-from multiprocessing import cpu_count, Process
-from flask import Flask, jsonify
 import json
+from flask import Flask
 from flask import request
 from predict import  Predictor
 import time
-
 
 app = Flask(__name__)
 app.config['JSON_AS_ASCII'] = False
@@ -31,10 +20,10 @@ def extract_data():
                                }, ensure_ascii=False)
         # 抽取关联信息
         try:
-            # start = time.time()
+            start = time.time()
             ner_result = predictor.ner_predict(text)
-            # end = time.time()
-            # print("耗时：{}s".format(end - start))
+            end = time.time()
+            print("耗时：{}s".format(end - start))
         except Exception as e:
             logger.error(ner_result)
             logger.error(e)
@@ -58,27 +47,9 @@ class ReturnResult:
         self.result = result
         self.ucode = ucode
 
-def run(MULTI_PROCESS):
-    if MULTI_PROCESS == False:
-        WSGIServer(('0.0.0.0', 9277), app).serve_forever()
-    else:
-        mulserver = WSGIServer(('0.0.0.0', 9277), app)
-        mulserver.start()
 
-        def server_forever():
-            mulserver.start_accepting()
-            mulserver._stop_event.wait()
-
-        # for i in range(cpu_count()):
-        for i in range(3):
-            p = Process(target=server_forever)
-            p.start()
-            p = Process(target=server_forever)
-            p.start()
-
-if __name__ == "__main__":
-    predictor = Predictor('steel')
-    # 单进程 + 协程
-    # run(False)
-    # 多进程 + 协程
-    run(True)
+if __name__ == '__main__':
+    predictor = Predictor('wine')
+    app.run(host="0.0.0.0", port=9277, debug=False, threaded=3)
+# 启动 nohup python -u server.py > nohup.log &
+# 访问 curl  http://10.80.92.7:9277/extraction -X POST -d '{"text": "1.4*1250*2500 1.8*1250*2500本钢盒板什么价格呢"}' --header "Content-Type: application/json"

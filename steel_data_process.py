@@ -4,7 +4,7 @@ import os
 import re
 import utils
 
-class ProcessWineData:
+class ProcessSteelData:
 	def __init__(self):
 		self.data_path = "./data/steel/"
 		self.train_file_ori = self.data_path + "ori_data/steel_ori_text.xlsx"
@@ -100,5 +100,5 @@ class ProcessWineData:
 		return utils.pre_handle_text_steel(text)
 
 if __name__ == "__main__":
-	processWineData = ProcessWineData()
-	processWineData.get_ner_data()
+	processSteelData = ProcessSteelData()
+	processSteelData.get_ner_data()

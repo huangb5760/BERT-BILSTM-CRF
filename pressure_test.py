@@ -40,6 +40,6 @@ class WebsiteTasks(TaskSet):
 class WebsiteUser(HttpUser):
     # task_set = WebsiteTasks  # Usage of User.task_set is deprecated since version 1.0. Set the tasks attribute instead (tasks = [WebsiteTasks])
     tasks = [WebsiteTasks]
-    host = "http://10.80.92.7:9277"
+    host = "http://tctgpu.zhaogangren.com:9277"
     min_wait = 50
     max_wait = 100

@@ -9,7 +9,7 @@ class ProcessWineData:
 		self.train_file = self.data_path + "ner_data"
 
 	def get_ner_data(self):
-		excel=load_workbook(self.train_file_ori)
+		excel=load_workbook(filename=self.train_file_ori,read_only=True)
 		ws = excel.get_sheet_by_name('Sheet1')
 		rows=ws.rows
 		max_row=ws.max_row #获取行数
@@ -41,29 +41,35 @@ class ProcessWineData:
 						content = str(content)
 						try:
 							d = eval(content)
+							find_start=0
 							for rel_id, spo in enumerate(d):
+								name = spo["name"]
 								spo_start=0
 								spo_end=0
 								if spo.get("pos")!=None:
 									spo_start = spo["pos"][0]
 									spo_end = spo["pos"][1]
 								else:
-									spo_start = text_org.find(spo["name"])
+									spo_start = text_org.find(name,find_start)
 									if spo_start == -1:
 										continue
-									spo_end = spo_start+len(spo["name"])-1
+									spo_end = spo_start+len(name)-1
+									find_start = spo_end+1
 								recrod["labels"][spo_start] = "B-" + keys[j]
 								if spo_end >spo_start:
 									for q in range(spo_start + 1, spo_end+1):
 									    recrod["labels"][q] = "I-" + keys[j]
 						except :
-							spo_start = text_org.find(content)
-							if spo_start == -1:
-								continue
-							spo_end = spo_start+len(content)-1
-							recrod["labels"][spo_start] = "B-" + keys[j]
-							for q in range(spo_start + 1, spo_end+1):
-								recrod["labels"][q] = "I-" + keys[j]
+							find_start=0
+							for item in content.split('\n'):
+								spo_start = text_org.find(item,find_start)
+								if spo_start == -1:
+									continue
+								spo_end = spo_start+len(item)-1
+								find_start = spo_end+1
+								recrod["labels"][spo_start] = "B-" + keys[j]
+								for q in range(spo_start + 1, spo_end+1):
+									recrod["labels"][q] = "I-" + keys[j]
 			result.append(recrod)
 		train_ratio = 1
 		train_num = int(len(result) * train_ratio)
