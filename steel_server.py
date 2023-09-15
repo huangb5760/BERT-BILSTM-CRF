@@ -8,7 +8,7 @@ app = Flask(__name__)
 app.config['JSON_AS_ASCII'] = False
 app.config['JSONIFY_MIMETYPE'] = "application/json;charset=utf-8"
 
-@app.route("/extraction", methods=["POST"])
+@app.route("/steel/extraction", methods=["POST"])
 def extract_data():
     if request.method == "POST":
         params = request.get_json()

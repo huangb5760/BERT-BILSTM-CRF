@@ -5,7 +5,7 @@ import os
 class ProcessWineData:
 	def __init__(self):
 		self.data_path = "./data/wine/"
-		self.train_file_ori = self.data_path + "ori_data/wine_org_text.xlsx"
+		self.train_file_ori = self.data_path + "ori_data/wine_org_text_gpt.xlsx"
 		self.train_file = self.data_path + "ner_data"
 
 	def get_ner_data(self):
@@ -88,6 +88,72 @@ class ProcessWineData:
 		    fp.write("\n".join(labels))
 		print("转换任务结束")
 
+	def generate_gpt_train_data(self):
+		prompt_input = """我是一名白酒行业的数据分析专家,
+可以从一段文字解析出意向(sell/buy),sku(年份、品牌、系列、酒精度、规格、数量、价格)，按下面json输出格式
+ ---
+{
+'intention':string,// 意向:sell,buy
+'sku':[{'year':string, //年份
+   'brand':string, //品牌
+   'series':string, //系列
+   'degree':string, //酒精度
+   'specification':string, //规格
+   'quantity':string,// 数量
+   'price':string, //价格
+}]}"""
+		excel=load_workbook(filename=self.train_file_ori,read_only=True)
+		ws = excel.get_sheet_by_name('Sheet1')
+		rows=ws.rows
+		# max_row=ws.max_row #获取行数
+		max_row=46
+		max_column=ws.max_column #获取列数
+		print("转换任务开始，共{}行,{}列".format(max_row,max_column))
+		data=list(rows)
+		# 保存关键字
+		keys = []
+		# 保存结果
+		result = []
+		#读取标题作为key
+		for x in range(0,max_column):
+			keys.append(data[0][x].value)
+		# 用于读取第一列和后面列1对多的excel文件
+		for i in range(1,max_row):
+			recrod={}
+			text_org=None
+			intention=None
+			for j in range(0,max_column):
+				content = data[i][j].value
+				if j == 1:
+					if content!=None:
+						text_org = content
+				elif j == 2:
+					intention = content
+				elif j>2 and j!=6:
+					if content!=None:
+						content = str(content)
+						try:
+							d = eval(content)
+							for rel_id, spo in enumerate(d):
+								recrod[keys[j]] = spo["name"]
+						except :
+							find_start=0
+							for item in content.split('\n'):
+
+									recrod[keys[j]] = item
+			item_result = [recrod]
+			sku = {'intention':intention,'sku':item_result}
+			unit = []
+			unit.append({"role": "system", "content":prompt_input})
+			unit.append({"role": "user", "content": text_org})
+			unit.append({"role": "assistant", "content":json.dumps(sku, ensure_ascii=False)})
+			message = {'messages':unit}
+			result.append(json.dumps(message, ensure_ascii=False))
+		#输出
+		with open(self.train_file + "/gpt_train.jsonl", "w") as fp:
+		    fp.write(os.linesep.join(result))
+		print("转换任务结束")
+
 if __name__ == "__main__":
 	processWineData = ProcessWineData()
-	processWineData.get_ner_data()
+	processWineData.generate_gpt_train_data()
