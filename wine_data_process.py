@@ -105,8 +105,7 @@ class ProcessWineData:
 		excel=load_workbook(filename=self.train_file_ori,read_only=True)
 		ws = excel.get_sheet_by_name('Sheet1')
 		rows=ws.rows
-		# max_row=ws.max_row #获取行数
-		max_row=46
+		max_row=ws.max_row #获取行数
 		max_column=ws.max_column #获取列数
 		print("转换任务开始，共{}行,{}列".format(max_row,max_column))
 		data=list(rows)
@@ -117,38 +116,39 @@ class ProcessWineData:
 		#读取标题作为key
 		for x in range(0,max_column):
 			keys.append(data[0][x].value)
+		current_id = None
+		text_org = None
+		intention = None
+		sku = []
 		# 用于读取第一列和后面列1对多的excel文件
 		for i in range(1,max_row):
 			recrod={}
-			text_org=None
-			intention=None
+			if data[i][0].value!=None:
+				if i>1:
+					answer = {'intention':intention,'sku':sku}
+					unit = []
+					unit.append({"role": "system", "content":prompt_input})
+					unit.append({"role": "user", "content": text_org})
+					unit.append({"role": "assistant", "content":json.dumps(answer, ensure_ascii=False)})
+					message = {'messages':unit}
+					result.append(json.dumps(message, ensure_ascii=False)) 
+					sku = []
+				current_id = data[i][0].value
+				text_org=data[i][1].value
+				intention=data[i][2].value
 			for j in range(0,max_column):
 				content = data[i][j].value
-				if j == 1:
-					if content!=None:
-						text_org = content
-				elif j == 2:
-					intention = content
-				elif j>2 and j!=6:
-					if content!=None:
-						content = str(content)
-						try:
-							d = eval(content)
-							for rel_id, spo in enumerate(d):
-								recrod[keys[j]] = spo["name"]
-						except :
-							find_start=0
-							for item in content.split('\n'):
-
-									recrod[keys[j]] = item
-			item_result = [recrod]
-			sku = {'intention':intention,'sku':item_result}
-			unit = []
-			unit.append({"role": "system", "content":prompt_input})
-			unit.append({"role": "user", "content": text_org})
-			unit.append({"role": "assistant", "content":json.dumps(sku, ensure_ascii=False)})
-			message = {'messages':unit}
-			result.append(json.dumps(message, ensure_ascii=False))
+				if j>2 and content!=None:
+					recrod[keys[j]] = str(content)
+			sku.append(recrod)
+			if i==max_row-1:
+				answer = {'intention':intention,'sku':sku}
+				unit = []
+				unit.append({"role": "system", "content":prompt_input})
+				unit.append({"role": "user", "content": text_org})
+				unit.append({"role": "assistant", "content":json.dumps(answer, ensure_ascii=False)})
+				message = {'messages':unit}
+				result.append(json.dumps(message, ensure_ascii=False)) 
 		#输出
 		with open(self.train_file + "/gpt_train.jsonl", "w") as fp:
 		    fp.write(os.linesep.join(result))
