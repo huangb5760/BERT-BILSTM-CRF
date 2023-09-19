@@ -90,11 +90,10 @@ class ProcessWineData:
 
 	def generate_gpt_train_data(self):
 		prompt_input = """我是一名白酒行业的数据分析专家,
-可以从一段文字解析出意向(sell/buy),sku(年份、品牌、系列、酒精度、规格、数量、价格)，按下面json输出格式
+可以从一段文字解析出sku(意向(sell/buy)、年份、品牌、系列、酒精度、规格、数量、价格)，按下面json输出格式
  ---
-{
-'intention':string,// 意向:sell,buy
-'sku':[{'year':string, //年份
+{'sku':[{'intention':string,// 意向:sell,buy
+   'year':string, //年份
    'brand':string, //品牌
    'series':string, //系列
    'degree':string, //酒精度
@@ -118,14 +117,13 @@ class ProcessWineData:
 			keys.append(data[0][x].value)
 		current_id = None
 		text_org = None
-		intention = None
 		sku = []
 		# 用于读取第一列和后面列1对多的excel文件
 		for i in range(1,max_row):
 			recrod={}
 			if data[i][0].value!=None:
 				if i>1:
-					answer = {'intention':intention,'sku':sku}
+					answer = {'sku':sku}
 					unit = []
 					unit.append({"role": "system", "content":prompt_input})
 					unit.append({"role": "user", "content": text_org})
@@ -135,14 +133,13 @@ class ProcessWineData:
 					sku = []
 				current_id = data[i][0].value
 				text_org=data[i][1].value
-				intention=data[i][2].value
 			for j in range(0,max_column):
 				content = data[i][j].value
-				if j>2 and content!=None:
+				if j>1 and content!=None:
 					recrod[keys[j]] = str(content)
 			sku.append(recrod)
 			if i==max_row-1:
-				answer = {'intention':intention,'sku':sku}
+				answer = {'sku':sku}
 				unit = []
 				unit.append({"role": "system", "content":prompt_input})
 				unit.append({"role": "user", "content": text_org})
